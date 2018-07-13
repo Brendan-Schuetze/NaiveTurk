@@ -23,14 +23,17 @@ class ListConverter(BaseConverter):
 
 app.url_map.converters['list'] = ListConverter
 
-@app.route("/dump/<user>/", methods = ['GET'])
-def dumpUser(user, tags = "NA"):
+@app.route("/dump/<user>/<key>", methods = ['GET'])
+def dumpUser(user, key):
     user_doc = mongo.db.id.find_one({"worker": user})
+    key_dc = mongo.db.keys.find_one({"pw": key})
 
     if user_doc is None:
-        return("User not found")
-    else:
+        return("User Not Found.")
+    else if key_dc is not None:
         return(dumps(user_doc))
+    else:
+        return("Not Authenticated.")
 
 # Method for Checking if User is in Database
 @app.route("/check/<user>/", methods = ['GET'])
@@ -39,7 +42,7 @@ def checkUserStatus(user, tags = "NA"):
     user_doc = mongo.db.id.find_one({"worker": user})
 
     if user_doc is None:
-        return("User not found")
+        return("User Not Found.")
     else:
         id = user_doc["_id"]
         mongo.db.id.update({ "_id" : id}, { "$push": { "pings": strftime("%Y-%m-%d %H:%M:%S", gmtime()) }})

@@ -30,7 +30,7 @@ def dumpUser(user, key):
 
     if user_doc is None:
         return("User Not Found.")
-    else if key_dc is not None:
+    elif key_dc is not None:
         return(dumps(user_doc))
     else:
         return("Not Authenticated.")

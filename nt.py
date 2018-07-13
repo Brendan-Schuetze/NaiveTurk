@@ -21,6 +21,13 @@ class ListConverter(BaseConverter):
 
 app.url_map.converters['list'] = ListConverter
 
+@app.route("/dump/<user>/", methods = ['GET'])
+    user_doc = mongo.db.id.find_one({"worker": user})
+
+    if user_doc is None:
+        return("User not found")
+    else:
+        return(json.dumps(user_doc, indent = 4))
 
 # Method for Checking if User is in Database
 @app.route("/check/<user>/", methods = ['GET'])

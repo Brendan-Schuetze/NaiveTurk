@@ -3,7 +3,8 @@ from flask import Flask
 from flask_pymongo import PyMongo
 from time import gmtime, strftime
 from werkzeug.routing import BaseConverter
-import json
+from bson import Binary, Code
+from bson.json_util import dumps
 
 # Start Flask App
 app = Flask(__name__)
@@ -29,7 +30,7 @@ def dumpUser(user, tags = "NA"):
     if user_doc is None:
         return("User not found")
     else:
-        return(json.dumps(user_doc, indent = 4))
+        return(dumps(user_doc))
 
 # Method for Checking if User is in Database
 @app.route("/check/<user>/", methods = ['GET'])

@@ -23,8 +23,9 @@ app.url_map.converters['list'] = ListConverter
 
 
 # Method for Checking if User is in Database
+@app.route("/check/<user>/", methods = ['GET'])
 @app.route("/check/<user>/<list:tags>", methods = ['GET'])
-def returnUserStatus(user):
+def returnUserStatus(user, tags = "NA"):
     user_doc = mongo.db.id.find_one({"worker": user})
 
     if user_doc is None:

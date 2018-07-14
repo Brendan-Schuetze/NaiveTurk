@@ -15,26 +15,20 @@ app.config["MONGO_URI"] = "mongodb://localhost:27017/turk"
 mongo = PyMongo(app)
 
 # Password Hashing Functions
-def generateSalt():
-    bytes = urandom(64)
-    salt = b64encode(bytes).decode('utf-8')
-    return salt
 
-def hashKey(key, salt):
-    hash = bcrypt.hashpw(key, salt)
+def hashKey(key):
+    hash = bcrypt.hashpw(key.encode('utf-8'), bcrypt.gensalt())
     return hash
 
 # Helper Function for Generating Hashes and Inserting into DB
 def createKeySet(public_key, private_key):
-    salt = generateSalt()
-    hash = hashKey(private_key, salt)
+    hash = hashKey(private_key)
 
     existing = mongo.db.keys.find_one({"public_key": public_key})
 
     if existing is None:
-        mongo.db.keys.insert({"public_key": public_key, "hash": hash,
-        "salt": salt})
-        return("Success")
+        mongo.db.keys.insert({"public_key": public_key, "hash": hash})
+        return("Success.")
     else:
         return("Username already taken.")
 
@@ -57,17 +51,16 @@ def createUser(public_key, private_key):
 
 
 # Dump All Information Regarding User
-@app.route("/dump/<public_key>/<private_key>/<user>", methods = ['GET'])
+@app.route("/dump/<public_key>/<private_key_test>/<user>", methods = ['GET'])
 def dumpUser(user, public_key, private_key_test):
     user_doc = mongo.db.id.find_one({"worker": user})
     requester = mongo.db.keys.find_one({"public_key": public_key})
 
-    salt = requester["salt"]
     private_key_real = requester["hash"]
 
     if user_doc is None:
         return("User Not Found.")
-    elif (hashKey(private_key, salt) == private_key_real):
+    elif bcrypt.checkpw(private_key_real.encode('utf-8'), private_key_test.encode('utf-8')):
         return(dumps(user_doc))
     else:
         return("Not Authenticated.")

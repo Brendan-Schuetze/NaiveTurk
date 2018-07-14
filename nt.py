@@ -27,7 +27,7 @@ def createKeySet(public_key, private_key):
     existing = mongo.db.keys.find_one({"public_key": public_key})
 
     if existing is None:
-        mongo.db.keys.insert({"public_key": public_key, "hash": hash})
+        mongo.db.keys.insert({"public_key": public_key, "hash": hash.decode('utf8')})
         return("Success.")
     else:
         return("Username already taken.")

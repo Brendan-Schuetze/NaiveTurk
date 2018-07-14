@@ -28,7 +28,7 @@ def createKeySet(public_key, private_key):
 
     if existing is None:
         mongo.db.keys.insert({"public_key": public_key, "hash": hash.decode('utf8')})
-        return("Success.")
+        return(hash)
     else:
         return("Username already taken.")
 
@@ -45,13 +45,13 @@ class ListConverter(BaseConverter):
 app.url_map.converters['list'] = ListConverter
 
 # Create Keyset for Accessing Authenticated Information
-@app.route("/create/<public_key>/<private_key>", methods = ['GET'])
+@app.route("/create/<public_key>/<private_key>/", methods = ['GET'])
 def createUser(public_key, private_key):
     return(createKeySet(public_key, private_key))
 
 
 # Dump All Information Regarding User
-@app.route("/dump/<public_key>/<private_key_test>/<user>", methods = ['GET'])
+@app.route("/dump/<public_key>/<private_key_test>/<user>/", methods = ['GET'])
 def dumpUser(user, public_key, private_key_test):
     user_doc = mongo.db.id.find_one({"worker": user})
     requester = mongo.db.keys.find_one({"public_key": public_key})
@@ -67,7 +67,7 @@ def dumpUser(user, public_key, private_key_test):
 
 # Method for Checking if User is in Database
 @app.route("/check/<user>/", methods = ['GET'])
-@app.route("/check/<user>/<list:tags>", methods = ['GET'])
+@app.route("/check/<user>/<list:tags>/", methods = ['GET'])
 def checkUserStatus(user, tags = "NA"):
     user_doc = mongo.db.id.find_one({"worker": user})
 

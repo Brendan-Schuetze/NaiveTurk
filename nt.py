@@ -7,7 +7,7 @@ from bson import Binary, Code
 from bson.json_util import dumps
 from base64 import b64encode
 from os import urandom
-from flask.ext.bcrypt import Bcrypt
+from flask_bcrypt import Bcrypt
 
 # Start Flask App
 app = Flask(__name__)
@@ -56,12 +56,13 @@ def dumpUser(public_key, private_key_test, user):
     user_doc = mongo.db.id.find_one({"worker": user})
     requester = mongo.db.keys.find_one({"public_key": public_key})
 
-    private_key_real = requester["hash"]
+    if requester is not None:
+        private_key_real = requester["hash"]
 
-    if user_doc is None:
-        return("User Not Found.")
-    elif bcrypt.check_password_hash(private_key_real, private_key_test):
-        return(dumps(user_doc))
+        if user_doc is None:
+            return("User Not Found.")
+        elif bcrypt.check_password_hash(private_key_real, private_key_test):
+            return(dumps(user_doc))
     else:
         return("Not Authenticated.")
 

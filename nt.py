@@ -7,7 +7,7 @@ from bson import Binary, Code
 from bson.json_util import dumps
 from base64 import b64encode
 from os import urandom
-import bcrypt
+from flask.ext.bcrypt import Bcrypt
 
 # Start Flask App
 app = Flask(__name__)

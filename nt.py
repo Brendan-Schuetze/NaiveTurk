@@ -51,13 +51,13 @@ class ListConverter(BaseConverter):
 app.url_map.converters['list'] = ListConverter
 
 # Create Keyset for Accessing Authenticated Information
-@app.route("/create/public_key/private_key", methods = ['GET'])
+@app.route("/create/<public_key>/<private_key>", methods = ['GET'])
 def createUser(public_key, private_key):
-    createKeySet(public_key, private_key)
-    return("True")
+    retrun(createKeySet(public_key, private_key))
+
 
 # Dump All Information Regarding User
-@app.route("/dump/<user>/<public_key>/<private_key>", methods = ['GET'])
+@app.route("/dump/<public_key>/<private_key>/<user>", methods = ['GET'])
 def dumpUser(user, public_key, private_key_test):
     user_doc = mongo.db.id.find_one({"worker": user})
     requester = mongo.db.keys.find_one({"public_key": public_key})

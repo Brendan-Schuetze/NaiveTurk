@@ -5,6 +5,18 @@ from time import gmtime, strftime
 from werkzeug.routing import BaseConverter
 from bson import Binary, Code
 from bson.json_util import dumps
+import hashlib
+from base64 import b64encode
+from os import urandom
+
+def generateSalt():
+    bytes = urandom(64)
+    salt = b64encode(bytes).decode('utf-8')
+    return salt
+
+def hashPW(key, salt):
+    hash = hashlib.sha512(key + salt)
+    return hash
 
 # Start Flask App
 app = Flask(__name__)
@@ -23,14 +35,18 @@ class ListConverter(BaseConverter):
 
 app.url_map.converters['list'] = ListConverter
 
-@app.route("/dump/<user>/<key>", methods = ['GET'])
-def dumpUser(user, key):
+@app.route("/dump/<user>/<public_key>/<private_key>", methods = ['GET'])
+def dumpUser(user, public_key, private_key_test):
     user_doc = mongo.db.id.find_one({"worker": user})
-    key_dc = mongo.db.keys.find_one({"pw": key})
+    requester = mongo.db.keys.find_one({"public_key": public_key})
+
+    salt = requester["salt"]
+    private_key_real = requester["private_key"]
+
 
     if user_doc is None:
         return("User Not Found.")
-    elif key_dc is not None:
+    elif (hashPW(private_key, salt) == private_key_real):
         return(dumps(user_doc))
     else:
         return("Not Authenticated.")

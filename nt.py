@@ -28,7 +28,7 @@ def createKeySet(public_key, private_key):
 
     if existing is None:
         mongo.db.keys.insert({"public_key": public_key, "hash": hash.decode('utf8')})
-        return(hash)
+        return("Success.")
     else:
         return("Username already taken.")
 
@@ -52,7 +52,7 @@ def createUser(public_key, private_key):
 
 # Dump All Information Regarding User
 @app.route("/dump/<public_key>/<private_key_test>/<user>/", methods = ['GET'])
-def dumpUser(user, public_key, private_key_test):
+def dumpUser(public_key, private_key_test, user):
     user_doc = mongo.db.id.find_one({"worker": user})
     requester = mongo.db.keys.find_one({"public_key": public_key})
 
@@ -60,7 +60,7 @@ def dumpUser(user, public_key, private_key_test):
 
     if user_doc is None:
         return("User Not Found.")
-    elif bcrypt.checkpw(private_key_real.encode('utf-8'), private_key_test.encode('utf-8')):
+    elif bcrypt.checkpw(private_key_test.encode('utf-8'), private_key_real.encode('utf-8')):
         return(dumps(user_doc))
     else:
         return("Not Authenticated.")

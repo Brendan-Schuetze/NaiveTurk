@@ -11,13 +11,14 @@ import bcrypt
 
 # Start Flask App
 app = Flask(__name__)
+bcrypt = Bcrypt(app)
 app.config["MONGO_URI"] = "mongodb://localhost:27017/turk"
 mongo = PyMongo(app)
 
 # Password Hashing Functions
 
 def hashKey(key):
-    hash = bcrypt.hashpw(key.encode('utf-8'), bcrypt.gensalt())
+    hash = bcrypt.generate_password_hash(key)
     return hash
 
 # Helper Function for Generating Hashes and Inserting into DB
@@ -25,9 +26,8 @@ def createKeySet(public_key, private_key):
     hash = hashKey(private_key)
 
     existing = mongo.db.keys.find_one({"public_key": public_key})
-
     if existing is None:
-        mongo.db.keys.insert({"public_key": public_key, "hash": hash.decode('utf8')})
+        mongo.db.keys.insert({"public_key": public_key, "hash": hash})
         return("Success.")
     else:
         return("Username already taken.")
@@ -60,7 +60,7 @@ def dumpUser(public_key, private_key_test, user):
 
     if user_doc is None:
         return("User Not Found.")
-    elif bcrypt.checkpw(private_key_test.encode('utf-8'), private_key_real.encode('utf-8')):
+    elif bcrypt.check_password_hash(private_key_real, private_key_test):
         return(dumps(user_doc))
     else:
         return("Not Authenticated.")

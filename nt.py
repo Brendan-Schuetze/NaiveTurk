@@ -51,7 +51,7 @@ class ListConverter(BaseConverter):
 app.url_map.converters['list'] = ListConverter
 
 # Create Keyset for Accessing Authenticated Information
-@app.route("/create/public_key/private_key", methods = ['GET']):
+@app.route("/create/public_key/private_key", methods = ['GET'])
 def createUser(public_key, private_key):
     createKeySet(public_key, private_key)
     return("True")

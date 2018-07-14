@@ -5,23 +5,33 @@ from time import gmtime, strftime
 from werkzeug.routing import BaseConverter
 from bson import Binary, Code
 from bson.json_util import dumps
-import hashlib
 from base64 import b64encode
 from os import urandom
-
-def generateSalt():
-    bytes = urandom(64)
-    salt = b64encode(bytes).decode('utf-8')
-    return salt
-
-def hashPW(key, salt):
-    hash = hashlib.sha512(key + salt)
-    return hash
+import bcrypt
 
 # Start Flask App
 app = Flask(__name__)
 app.config["MONGO_URI"] = "mongodb://localhost:27017/turk"
 mongo = PyMongo(app)
+
+# Password Hashing Functions
+def generateSalt():
+    bytes = urandom(64)
+    salt = b64encode(bytes).decode('utf-8')
+    return salt
+
+def hashKey(key, salt):
+    hash = bcrypt.hashpw(key, salt)
+    return hash
+
+# Helper Function for Generating Hashes and Inserting into DB
+def createKeySet(public_key, private_key):
+    salt = generateSalt()
+    hash = hashKey(private_key, salt)
+
+    mongo.db.keys.insert({"public_key": public_key, "hash": hash,
+    "salt": salt})
+
 
 # List Converter for Converting Tags to a List
 class ListConverter(BaseConverter):
@@ -35,18 +45,24 @@ class ListConverter(BaseConverter):
 
 app.url_map.converters['list'] = ListConverter
 
+# Create Keyset for Accessing Authenticated Information
+@app.route("/create/public_key/private_key", methods = ['GET']):
+def createUser(public_key, private_key):
+    createKeySet(public_key, private_key)
+    return("True")
+
+# Dump All Information Regarding User
 @app.route("/dump/<user>/<public_key>/<private_key>", methods = ['GET'])
 def dumpUser(user, public_key, private_key_test):
     user_doc = mongo.db.id.find_one({"worker": user})
     requester = mongo.db.keys.find_one({"public_key": public_key})
 
     salt = requester["salt"]
-    private_key_real = requester["private_key"]
-
+    private_key_real = requester["hash"]
 
     if user_doc is None:
         return("User Not Found.")
-    elif (hashPW(private_key, salt) == private_key_real):
+    elif (hashKey(private_key, salt) == private_key_real):
         return(dumps(user_doc))
     else:
         return("Not Authenticated.")

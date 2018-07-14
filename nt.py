@@ -29,9 +29,14 @@ def createKeySet(public_key, private_key):
     salt = generateSalt()
     hash = hashKey(private_key, salt)
 
-    mongo.db.keys.insert({"public_key": public_key, "hash": hash,
-    "salt": salt})
+    existing = mongo.db.keys.find_one({"public_key": public_key})
 
+    if existing is None:
+        mongo.db.keys.insert({"public_key": public_key, "hash": hash,
+        "salt": salt})
+        return("Success")
+    else:
+        return("Username already taken.")
 
 # List Converter for Converting Tags to a List
 class ListConverter(BaseConverter):

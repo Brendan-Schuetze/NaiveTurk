@@ -84,7 +84,7 @@ def checkUserStatus(user, tags = "NA"):
         id = user_doc["_id"]
         mongo.db.id.update({ "_id" : id}, { "$push": { "pings": strftime("%Y-%m-%d %H:%M:%S", gmtime()) }})
 
-        for(tag in tags):
+        for tag in tags:
             if(tag in user_doc["tags"]):
                 return(True)
         return(False)

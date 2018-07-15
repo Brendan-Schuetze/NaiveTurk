@@ -86,8 +86,8 @@ def checkUserStatus(user, tags = "NA"):
 
         for tag in tags:
             if(tag in user_doc["tags"]):
-                return(True)
-        return(False)
+                return("True")
+        return("False")
 
 
 # Method for Updating Tags Associated with User

@@ -67,7 +67,7 @@ def dumpUser(public_key, private_key_test, user):
 
     if user_doc is None:
         return("User Not Found.")
-    elif authenticateRequester(public_key, private_key_test)
+    elif authenticateRequester(public_key, private_key_test):
             return(dumps(user_doc))
     else:
         return("Not Authenticated.")
@@ -93,7 +93,7 @@ def checkUserStatus(user, tags = "NA"):
 # Method for Updating Tags Associated with User
 @app.route("/add/<public_key>/<private_key_test>/<user>/<list:tags>/", methods = ['POST'])
 def updateUserStatus(user):
-    if(authenticateRequester(public_key, private_key)):
+    if authenticateRequester(public_key, private_key):
         return "Testing"
     else:
         return("Not Authenticated.")

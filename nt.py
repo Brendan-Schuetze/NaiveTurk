@@ -92,7 +92,7 @@ def checkUserStatus(user, tags = "NA"):
 
 # Method for Updating Tags Associated with User
 @app.route("/add/<public_key>/<private_key_test>/<user>/<list:tags>/", methods = ['POST'])
-def updateUserStatus(user):
+def updateUserStatus(public_key, private_key, user, tags):
     if authenticateRequester(public_key, private_key):
         return "Testing"
     else:

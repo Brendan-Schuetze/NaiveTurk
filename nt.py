@@ -15,8 +15,7 @@ bcrypt = Bcrypt(app)
 app.config["MONGO_URI"] = "mongodb://localhost:27017/turk"
 mongo = PyMongo(app)
 
-# Password Hashing Functions
-
+# Password Hashing Function
 def hashKey(key):
     hash = bcrypt.generate_password_hash(key)
     return hash
@@ -32,6 +31,10 @@ def createKeySet(public_key, private_key):
     else:
         return("Username already taken.")
 
+# Find Worker
+def findWorker(user):
+    return(mongo.db.id.find_one({"worker": user}))
+
 # List Converter for Converting Tags to a List
 class ListConverter(BaseConverter):
 
@@ -44,24 +47,27 @@ class ListConverter(BaseConverter):
 
 app.url_map.converters['list'] = ListConverter
 
+# Authentication Function
+def authenticateRequester(public_key, private_key_test):
+    requester = mongo.db.keys.find_one({"public_key": public_key})
+    if requester is not None:
+        private_key_real = requester["hash"]
+        return(bcrypt.check_password_hash(private_key_real, private_key_test))
+    return(False)
+
 # Create Keyset for Accessing Authenticated Information
 @app.route("/create/<public_key>/<private_key>/", methods = ['GET'])
 def createUser(public_key, private_key):
     return(createKeySet(public_key, private_key))
 
-
 # Dump All Information Regarding User
 @app.route("/dump/<public_key>/<private_key_test>/<user>/", methods = ['GET'])
 def dumpUser(public_key, private_key_test, user):
-    user_doc = mongo.db.id.find_one({"worker": user})
-    requester = mongo.db.keys.find_one({"public_key": public_key})
+    user_doc = findWorker(user)
 
-    if requester is not None:
-        private_key_real = requester["hash"]
-
-        if user_doc is None:
-            return("User Not Found.")
-        elif bcrypt.check_password_hash(private_key_real, private_key_test):
+    if user_doc is None:
+        return("User Not Found.")
+    elif authenticateRequester(public_key, private_key_test)
             return(dumps(user_doc))
     else:
         return("Not Authenticated.")
@@ -78,16 +84,21 @@ def checkUserStatus(user, tags = "NA"):
         id = user_doc["_id"]
         mongo.db.id.update({ "_id" : id}, { "$push": { "pings": strftime("%Y-%m-%d %H:%M:%S", gmtime()) }})
 
-        return(str(user_doc["worker"]) + "," +  str(len(list(user_doc["pings"]))) + " " + str(tags))
+        for(tag in tags):
+            if(tag in user_doc["tags"]):
+                return(True)
+        return(False)
+
 
 # Method for Updating Tags Associated with User
-@app.route("/update/<user>", methods = ['POST'])
+@app.route("/add/<public_key>/<private_key_test>/<user>/<list:tags>/", methods = ['POST'])
 def updateUserStatus(user):
-    return "Testing"
+    if(authenticateRequester(public_key, private_key)):
+        return "Testing"
+    else:
+        return("Not Authenticated.")
 
-
-
-
+# Homepage
 @app.route("/")
 def csv():
     return "Welcome to NaiveTurk"

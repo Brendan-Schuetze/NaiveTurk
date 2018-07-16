@@ -32,7 +32,7 @@ def createKeySet(public_key, private_key, first_name, last_name, email_address):
     existing_email = mongo.db.keys.find_one({"email_address": email_address})
     if existing is not None or existing_email is not None:
         return("Username or email is already taken.")
-    else
+    else:
         mongo.db.keys.insert({"public_key": public_key, "hash": hash,
             "registered_on": strftime("%Y-%m-%d %H:%M:%S",
             gmtime()), "verified:" "False",

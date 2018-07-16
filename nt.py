@@ -35,7 +35,7 @@ def createKeySet(public_key, private_key, first_name, last_name, email_address):
     else:
         mongo.db.keys.insert({"public_key": public_key, "hash": hash,
             "registered_on": strftime("%Y-%m-%d %H:%M:%S",
-            gmtime()), "verified:" "False",
+            gmtime()), "verified": "False",
             "first_name": first_name, "last_name": last_name,
             "email_address": email_address})
         return("Success.")

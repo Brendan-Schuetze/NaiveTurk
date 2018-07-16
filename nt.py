@@ -120,9 +120,9 @@ def dumpUser(user):
             return("User Not Found.")
         else:
             return(dumps(user_doc))
-    elif methods == "POST":
+    elif request.method == "POST":
         return("Not Authenticated.")
-    elif methods == "GET":
+    elif request.method == "GET":
         return login()
 
 # Method for Checking if User is in Database

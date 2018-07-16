@@ -108,7 +108,7 @@ def authenticate():
         session['logged_in'] = True
     else:
         return("Not Authenticated.")
-    return login()
+    return nt()
 
 # Dump All Information Regarding User (Admin Functionality)
 @app.route("/dump/<public_key>/<private_key_test>/<user>/", methods = ['GET'])
@@ -158,7 +158,7 @@ def updateUserStatus(public_key, private_key_test, user, tags):
 
 # Homepage
 @app.route("/")
-def csv():
+def nt():
     return "Welcome to NaiveTurk"
 
 #if __name__ == "__main__":

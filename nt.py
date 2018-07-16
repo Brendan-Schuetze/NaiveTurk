@@ -83,7 +83,10 @@ def authenticateRequester(public_key, private_key_test):
 # Create Keyset for Accessing Authenticated Information
 @app.route("/create/", methods = ['POST'])
 def createUser():
-    return(createKeySet(request.form['username'], request.form['password'], request.form['first_name'], request.form['last_name'], request.form['email_address']))
+    if createKeySet(request.form['username'], request.form['password'], request.form['first_name'], request.form['last_name'], request.form['email_address']) == "Success.":
+        return login()
+    else:
+        return("Failed to create account.")
 
 @app.route("/account/", methods = ['GET'])
 def accountDetails():
@@ -106,11 +109,6 @@ def authenticate():
     else:
         return("Not Authenticated.")
     return login()
-
-if __name__ == "__main__":
-    app.secret_key = os.urandom(12)
-    app.run(debug=True,host='0.0.0.0', port=4000)
-
 
 # Dump All Information Regarding User (Admin Functionality)
 @app.route("/dump/<public_key>/<private_key_test>/<user>/", methods = ['GET'])
@@ -165,3 +163,8 @@ def csv():
 
 #if __name__ == "__main__":
 #    app.run(host ='0.0.0.0', debug = True)
+
+#if __name__ == "__main__":
+#    app.secret_key = os.urandom(12)
+#    app.run(debug=True,host='0.0.0.0', port=4000)
+#

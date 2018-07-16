@@ -81,9 +81,16 @@ def authenticateRequester(public_key, private_key_test):
 
 
 # Create Keyset for Accessing Authenticated Information
-@app.route("/create/<public_key>/<private_key>/<first_name>/<last_name>/<email_address>/", methods = ['POST'])
+@app.route("/create/", methods = ['POST'])
 def createUser(public_key, private_key, first_name, last_name, email_address):
-    return(createKeySet(public_key, private_key, first_name, last_name, email_address))
+    return(createKeySet(request.form['username'], request.form['password'], request.form['first_name'], request.form['last_name'], request.form['email_address']))
+
+@app.route("/account/", methods = ['GET'])
+def accountDetails():
+    if not session.get('logged_in'):
+        return render_template('account.html')
+    else:
+        return "Hello Boss!"
 
 @app.route("/login/")
 def login():
@@ -97,7 +104,7 @@ def authenticate():
     if authenticateRequester(request.form['username'], request.form['password']):
         session['logged_in'] = True
     else:
-        flash('wrong password!')
+        return("Not Authenticated.")
     return login()
 
 if __name__ == "__main__":

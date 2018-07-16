@@ -111,16 +111,19 @@ def authenticate():
     return nt()
 
 # Dump All Information Regarding User (Admin Functionality)
-@app.route("/dump/<public_key>/<private_key_test>/<user>/", methods = ['GET'])
-def dumpUser(public_key, private_key_test, user):
-    user_doc = findWorker(user)
+@app.route("/dump/<user>/", methods = ['GET', 'POST'])
+def dumpUser(user):
+    if (methods == "GET" and session.get('logged_in')) or (methods == "POST" and authenticateRequester(request.args.get("username"), request.args.get("password"))):
+        user_doc = findWorker(user)
 
-    if user_doc is None:
-        return("User Not Found.")
-    elif authenticateRequester(public_key, private_key_test):
+        if user_doc is None:
+            return("User Not Found.")
+        else:
             return(dumps(user_doc))
-    else:
+    elif methods = "POST":
         return("Not Authenticated.")
+    elif methods = "GET":
+        return login()
 
 # Method for Checking if User is in Database
 @app.route("/check/<user>/", methods = ['GET'])
@@ -165,4 +168,3 @@ def nt():
 #    app.run(host ='0.0.0.0', debug = True)
 
 app.secret_key = os.urandom(24)
-

@@ -3,6 +3,8 @@ from flask import Flask
 from flask_pymongo import PyMongo
 from time import gmtime, strftime
 from werkzeug.routing import BaseConverter
+
+# Password Hashign Libraries
 from bson import Binary, Code
 from bson.json_util import dumps
 from base64 import b64encode
@@ -11,29 +13,46 @@ from flask_bcrypt import Bcrypt
 
 # Start Flask App
 app = Flask(__name__)
-bcrypt = Bcrypt(app)
 app.config["MONGO_URI"] = "mongodb://localhost:27017/turk"
+
+# Access Database and Encryption Functions
 mongo = PyMongo(app)
+bcrypt = Bcrypt(app)
 
 # Password Hashing Function
 def hashKey(key):
     hash = bcrypt.generate_password_hash(key)
-    return hash
+    return(hash)
 
 # Helper Function for Generating Hashes and Inserting into DB
-def createKeySet(public_key, private_key):
+def createKeySet(public_key, private_key, first_name, last_name, email_address):
     hash = hashKey(private_key)
 
     existing = mongo.db.keys.find_one({"public_key": public_key})
-    if existing is None:
-        mongo.db.keys.insert({"public_key": public_key, "hash": hash})
+    existing_email = mongo.db.keys.find_one({"email_address": email_address})
+    if existing is not None or existing_email is not None:
+        return("Username or email is already taken.")
+    else
+        mongo.db.keys.insert({"public_key": public_key, "hash": hash,
+            "registered_on": strftime("%Y-%m-%d %H:%M:%S",
+            gmtime()), "verified:" "False",
+            "first_name": first_name, "last_name": last_name,
+            "email_address": email_address})
         return("Success.")
-    else:
-        return("Username already taken.")
 
 # Find Worker
 def findWorker(user):
     return(mongo.db.id.find_one({"worker": user}))
+
+# Ping Worker
+def pingWorker(user_doc):
+    id = user_doc["_id"]
+    mongo.db.id.update({ "_id" : id}, { "$push": { "pings": strftime("%Y-%m-%d %H:%M:%S", gmtime()) }})
+    return(id)
+
+# Update Worker Tags
+def pingTag(id, tag):
+    return(True)
 
 # List Converter for Converting Tags to a List
 class ListConverter(BaseConverter):
@@ -51,16 +70,41 @@ app.url_map.converters['list'] = ListConverter
 def authenticateRequester(public_key, private_key_test):
     requester = mongo.db.keys.find_one({"public_key": public_key})
     if requester is not None:
-        private_key_real = requester["hash"]
-        return(bcrypt.check_password_hash(private_key_real, private_key_test))
+        if requester["verified"] != "True":
+            return(False)
+        else:
+            private_key_real = requester["hash"]
+            return(bcrypt.check_password_hash(private_key_real, private_key_test))
     return(False)
 
-# Create Keyset for Accessing Authenticated Information
-@app.route("/create/<public_key>/<private_key>/", methods = ['GET'])
-def createUser(public_key, private_key):
-    return(createKeySet(public_key, private_key))
 
-# Dump All Information Regarding User
+
+# Create Keyset for Accessing Authenticated Information
+@app.route("/create/<public_key>/<private_key>/<first_name>/<last_name>/<email_address>/", methods = ['POST'])
+def createUser(public_key, private_key, first_name, last_name, email_address):
+    return(createKeySet(public_key, private_key, first_name, last_name, email_address))
+
+@app.route("/login/")
+def login():
+    if not session.get('logged_in'):
+        return render_template('login.html')
+    else:
+        return "Hello Boss!"
+
+@app.route("/authenticate/", methods = ['POST'])
+def authenticate():
+    if authenticateRequester(request.form['username'], request.form['password']):
+        session['logged_in'] = True
+    else:
+        flash('wrong password!')
+    return login()
+
+if __name__ == "__main__":
+    app.secret_key = os.urandom(12)
+    app.run(debug=True,host='0.0.0.0', port=4000)
+
+
+# Dump All Information Regarding User (Admin Functionality)
 @app.route("/dump/<public_key>/<private_key_test>/<user>/", methods = ['GET'])
 def dumpUser(public_key, private_key_test, user):
     user_doc = findWorker(user)
@@ -76,13 +120,12 @@ def dumpUser(public_key, private_key_test, user):
 @app.route("/check/<user>/", methods = ['GET'])
 @app.route("/check/<user>/<list:tags>/", methods = ['GET'])
 def checkUserStatus(user, tags = "NA"):
-    user_doc = mongo.db.id.find_one({"worker": user})
+    user_doc = findWorker(user)
 
     if user_doc is None:
         return("User Not Found.")
     else:
-        id = user_doc["_id"]
-        mongo.db.id.update({ "_id" : id}, { "$push": { "pings": strftime("%Y-%m-%d %H:%M:%S", gmtime()) }})
+        id = pingWorker(user_doc)
 
         for tag in tags:
             if(tag in user_doc["tags"]):
@@ -94,7 +137,16 @@ def checkUserStatus(user, tags = "NA"):
 @app.route("/add/<public_key>/<private_key_test>/<user>/<list:tags>/", methods = ['GET'])
 def updateUserStatus(public_key, private_key_test, user, tags):
     if authenticateRequester(public_key, private_key_test):
-        return("Testing")
+        user_doc = findWorker(user)
+        if user_doc is None:
+            return("User Not Found.")
+        else:
+            id = pingWorker(user_doc)
+
+            for tag in tags:
+                if(tag in user_doc["tags"]):
+                    mongo.db.id.update({ "_id" : id}, { "$push": { "pings": strftime("%Y-%m-%d %H:%M:%S", gmtime()) }})
+
     else:
         return("Not Authenticated.")
 
@@ -103,5 +155,5 @@ def updateUserStatus(public_key, private_key_test, user, tags):
 def csv():
     return "Welcome to NaiveTurk"
 
-if __name__ == "__main__":
-    app.run(host ='0.0.0.0', debug = True)
+#if __name__ == "__main__":
+#    app.run(host ='0.0.0.0', debug = True)

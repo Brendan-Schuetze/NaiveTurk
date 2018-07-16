@@ -114,7 +114,7 @@ def authenticate():
 # Dump All Information Regarding User (Admin Functionality)
 @app.route("/dump/<user>/", methods = ['GET', 'POST'])
 def dumpUser(user):
-    if (request.method == "GET" and session.get('logged_in')) or (request.method == "POST" and authenticateRequester(request.args.get("username"), request.args.get("password"))):
+    if (request.method == "GET" and session.get('logged_in')) or (request.method == "POST" and authenticateRequester(request.form["username"], request.form["password"])):
         user_doc = findWorker(user)
 
         if user_doc is None:

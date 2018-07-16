@@ -15,6 +15,7 @@ from flask_bcrypt import Bcrypt
 # Start Flask App
 app = Flask(__name__)
 app.config["MONGO_URI"] = "mongodb://localhost:27017/turk"
+app.secret_key = os.urandom(24)
 
 # Access Database and Encryption Functions
 mongo = PyMongo(app)
@@ -143,9 +144,9 @@ def checkUserStatus(user, tags = "NA"):
 
 
 # Method for Updating Tags Associated with User
-@app.route("/add/<public_key>/<private_key_test>/<user>/<list:tags>/", methods = ['GET'])
-def updateUserStatus(public_key, private_key_test, user, tags):
-    if authenticateRequester(public_key, private_key_test):
+@app.route("/add/<user>/<list:tags>/", methods = ['GET', 'POST'])
+def updateUserStatus(user, tags):
+    if (request.method == "GET" and session.get('logged_in')) or (request.method == "POST" and authenticateRequester(request.form["username"], request.form["password"])):
         user_doc = findWorker(user)
         if user_doc is None:
             return("User Not Found.")
@@ -155,16 +156,15 @@ def updateUserStatus(public_key, private_key_test, user, tags):
             for tag in tags:
                 if(tag in user_doc["tags"]):
                     mongo.db.id.update({ "_id" : id}, { "$push": { "pings": strftime("%Y-%m-%d %H:%M:%S", gmtime()) }})
-
-    else:
+    elif request.method == "POST":
         return("Not Authenticated.")
+    elif request.method == "GET":
+        return login()
 
 # Homepage
 @app.route("/")
 def nt():
-    return "Welcome to NaiveTurk"
+    return "Welcome to nvt.science"
 
 #if __name__ == "__main__":
 #    app.run(host ='0.0.0.0', debug = True)
-
-app.secret_key = os.urandom(24)

@@ -82,7 +82,7 @@ def authenticateRequester(public_key, private_key_test):
 
 # Create Keyset for Accessing Authenticated Information
 @app.route("/create/", methods = ['POST'])
-def createUser(public_key, private_key, first_name, last_name, email_address):
+def createUser():
     return(createKeySet(request.form['username'], request.form['password'], request.form['first_name'], request.form['last_name'], request.form['email_address']))
 
 @app.route("/account/", methods = ['GET'])

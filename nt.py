@@ -1,6 +1,6 @@
 # Import Libraries
 from flask import Flask
-from flask import session
+from flask import session, redirect, render_template,
 from flask_pymongo import PyMongo
 from time import gmtime, strftime
 from werkzeug.routing import BaseConverter

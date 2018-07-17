@@ -9,8 +9,9 @@ from werkzeug.routing import BaseConverter
 from bson import Binary, Code
 from bson.json_util import dumps
 from base64 import b64encode
-import os
 from flask_bcrypt import Bcrypt
+import os
+import hashlib
 
 # Start Flask App
 app = Flask(__name__)
@@ -44,6 +45,7 @@ def createKeySet(public_key, private_key, first_name, last_name, email_address):
 
 # Find Worker
 def findWorker(user):
+    user = hashlib.sha256(user + "nvt.science")
     return(mongo.db.id.find_one({"worker": user}))
 
 # Ping Worker
@@ -80,7 +82,6 @@ def authenticateRequester(public_key, private_key_test):
     return(False)
 
 
-
 # Create Keyset for Accessing Authenticated Information
 @app.route("/create/", methods = ['POST'])
 def createUser():
@@ -89,20 +90,23 @@ def createUser():
     else:
         return("Failed to create account.")
 
+# Account Creation Page
 @app.route("/account/", methods = ['GET'])
 def accountDetails():
     if not session.get('logged_in'):
         return render_template('account.html')
     else:
-        return "Hello Boss!"
+        return nt()
 
+# Login Page
 @app.route("/login/")
 def login():
     if not session.get('logged_in'):
         return render_template('login.html')
     else:
-        return "Hello Boss!"
+        return nt()
 
+# Method for Authenticating Username + Password Combo
 @app.route("/authenticate/", methods = ['POST'])
 def authenticate():
     if authenticateRequester(request.form['username'], request.form['password']):
@@ -130,17 +134,22 @@ def dumpUser(user):
 @app.route("/check/<user>/", methods = ['GET'])
 @app.route("/check/<user>/<list:tags>/", methods = ['GET'])
 def checkUserStatus(user, tags = "NA"):
-    user_doc = findWorker(user)
+    if (request.method == "GET" and session.get('logged_in')) or (request.method == "POST" and authenticateRequester(request.form["username"], request.form["password"])):
+        user_doc = findWorker(user)
 
-    if user_doc is None:
-        return("User Not Found.")
-    else:
-        id = pingWorker(user_doc)
-
-        for tag in tags:
-            if(tag in user_doc["tags"]):
-                return("True")
-        return("False")
+        if user_doc is None:
+            return("False")
+        else:
+            id = pingWorker(user_doc)
+            if len(tags) > 0:
+                for tag in tags:
+                    if(tag in user_doc["tags"]):
+                        return("True")
+                return("False")
+    elif request.method == "POST":
+        return("Not Authenticated.")
+    elif request.method == "GET":
+        return login()
 
 
 # Method for Updating Tags Associated with User

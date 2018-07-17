@@ -139,16 +139,20 @@ def dumpUser(user):
 def checkUserStatus(user, tags = "NA"):
     if (request.method == "GET" and session.get('logged_in')) or (request.method == "POST" and authenticateRequester(request.form["username"], request.form["password"])):
         user_doc = findWorker(user)
+        id = pingWorker(user_doc)
 
         if user_doc is None:
             return("False")
         else:
-            return(user_doc["tags"])
-            id = pingWorker(user_doc)
             if len(tags) > 0:
                 for tag in tags:
-                    if(tag in user_doc["tags"]):
+                    tag_search = mongo.db.id.find_one({ "_id" : id} { "tags:" {"$elematch": {"tag_name:" tag}}})
+
+                    if(tag_search is not None):
                         return("True")
+                    else:
+                        tag_search = None
+
                 return("False")
             return("True")
     elif request.method == "POST":

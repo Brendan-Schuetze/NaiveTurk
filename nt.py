@@ -43,10 +43,13 @@ def createKeySet(public_key, private_key, first_name, last_name, email_address):
             "email_address": email_address})
         return("Success.")
 
+def digest(user):
+    user = hashlib.sha256(user + "nvt.science").hexdigest()
+    return(user)
+
 # Find Worker
 def findWorker(user):
-    user = hashlib.sha256(user + "nvt.science").hexdigest()
-    return(mongo.db.id.find_one({"worker": user}))
+    return(mongo.db.id.find_one({"worker": digest(user)}))
 
 # Ping Worker
 def pingWorker(user_doc):
@@ -132,7 +135,7 @@ def dumpUser(user):
 
 # Method for Checking if User is in Database
 @app.route("/check/<user>/", methods = ['GET'])
-@app.route("/check/<user>/<list:tags>/", methods = ['GET'])
+@app.route("/check/<user>/<list:tags>/", methods = ['GET', 'POST'])
 def checkUserStatus(user, tags = "NA"):
     if (request.method == "GET" and session.get('logged_in')) or (request.method == "POST" and authenticateRequester(request.form["username"], request.form["password"])):
         user_doc = findWorker(user)
@@ -158,13 +161,21 @@ def updateUserStatus(user, tags):
     if (request.method == "GET" and session.get('logged_in')) or (request.method == "POST" and authenticateRequester(request.form["username"], request.form["password"])):
         user_doc = findWorker(user)
         if user_doc is None:
-            return("User Not Found.")
+            mongo.db.id.insert({"worker": digest(user),
+                "time": strftime("%Y-%m-%d %H:%M:%S", gmtime()),
+                "pings": [],
+                "tags": []})
+
+            id = pingWorker(findWorker(user))
+
+            for tag in tags:
+                mongo.db.id.update({ "_id" : id}, { "$push": { "tags": [tag: strftime("%Y-%m-%d %H:%M:%S", gmtime())]}})
         else:
             id = pingWorker(user_doc)
 
             for tag in tags:
-                if(tag in user_doc["tags"]):
-                    mongo.db.id.update({ "_id" : id}, { "$push": { "pings": strftime("%Y-%m-%d %H:%M:%S", gmtime()) }})
+                mongo.db.id.update({ "_id" : id}, { "$push": { "tags": [tag: strftime("%Y-%m-%d %H:%M:%S", gmtime())]}})
+
     elif request.method == "POST":
         return("Not Authenticated.")
     elif request.method == "GET":

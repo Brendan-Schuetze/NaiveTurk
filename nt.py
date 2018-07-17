@@ -175,7 +175,7 @@ def updateUserStatus(user, tags):
 
             for tag in tags:
                 mongo.db.id.update({ "_id" : id}, { "$push": { "tags": {tag: strftime("%Y-%m-%d %H:%M:%S", gmtime())}}})
-
+        return("Success.")
     elif request.method == "POST":
         return("Not Authenticated.")
     elif request.method == "GET":

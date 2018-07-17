@@ -76,7 +76,7 @@ app.url_map.converters['list'] = ListConverter
 # Authentication Function
 def authenticateRequester(public_key, private_key_test):
     requester = mongo.db.keys.find_one({"public_key": public_key})
-    if requester is not None and requester["verified"] is not None:
+    if requester is not None:
         if requester["verified"] != "True":
             return(False)
         else:
@@ -146,7 +146,7 @@ def checkUserStatus(user, tags = "NA"):
             id = pingWorker(user_doc)
             if len(tags) > 0:
                 for tag in tags:
-                    tag_search = mongo.db.id.find({ "_id" : id, "tags.tag_name": tag})
+                    tag_search = mongo.db.id.find({ worker: findWorker(user), "tags.tag_name": tag})
 
                     if(tag_search is not None):
                         return("True")

@@ -62,6 +62,11 @@ def pingWorker(user_doc):
 def pingTag(id, tag):
     return(True)
 
+def redirect_url(default='index'):
+    return request.args.get('next') or \
+           request.referrer or \
+           url_for(default)
+
 # List Converter for Converting Tags to a List
 class ListConverter(BaseConverter):
 
@@ -108,7 +113,6 @@ def accountDetails():
 @app.route("/login/")
 def login():
     if not session.get('logged_in'):
-        session['referrer'] = request.referrer
         return render_template('login.html')
     else:
         return nt()
@@ -120,8 +124,8 @@ def authenticate():
         session['logged_in'] = True
     else:
         return("Not Authenticated.")
-    return redirect(session["referrer"])
-
+    redirect(redirect_url())
+    
 # Dump All Information Regarding User (Admin Functionality)
 @app.route("/dump/<user>/", methods = ['GET', 'POST'])
 def dumpUser(user):

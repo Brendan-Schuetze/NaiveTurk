@@ -143,12 +143,14 @@ def checkUserStatus(user, tags = "NA"):
         if user_doc is None:
             return("False")
         else:
+            return(user_doc["tags"])
             id = pingWorker(user_doc)
             if len(tags) > 0:
                 for tag in tags:
                     if(tag in user_doc["tags"]):
                         return("True")
                 return("False")
+            return("True")
     elif request.method == "POST":
         return("Not Authenticated.")
     elif request.method == "GET":
@@ -174,7 +176,7 @@ def updateUserStatus(user, tags):
             id = pingWorker(user_doc)
 
             for tag in tags:
-                mongo.db.id.update({ "_id" : id}, { "$push": { "tags": {tag: strftime("%Y-%m-%d %H:%M:%S", gmtime())}}})
+                mongo.db.id.update({ "_id" : id}, { "$push": { "tags": {"tag_name": tag, "tag_time": strftime("%Y-%m-%d %H:%M:%S", gmtime())}}})
         return("Success.")
     elif request.method == "POST":
         return("Not Authenticated.")

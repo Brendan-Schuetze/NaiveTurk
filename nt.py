@@ -45,7 +45,7 @@ def createKeySet(public_key, private_key, first_name, last_name, email_address):
 
 # Find Worker
 def findWorker(user):
-    user = hashlib.sha256(user + "nvt.science")
+    user = hashlib.sha256(user + "nvt.science").digest()
     return(mongo.db.id.find_one({"worker": user}))
 
 # Ping Worker

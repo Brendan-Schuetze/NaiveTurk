@@ -146,7 +146,7 @@ def checkUserStatus(user, tags = "NA"):
         else:
             if len(tags) > 0:
                 for tag in tags:
-                    tag_search = mongo.db.id.find_one({ "_id" : id} { "tags:" {"$elematch": {"tag_name:" tag}}})
+                    tag_search = mongo.db.id.find_one({ "_id" : id}, { "tags:" {"$elematch": {"tag_name:" tag}}})
 
                     if(tag_search is not None):
                         return("True")

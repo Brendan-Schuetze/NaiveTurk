@@ -169,12 +169,12 @@ def updateUserStatus(user, tags):
             id = pingWorker(findWorker(user))
 
             for tag in tags:
-                mongo.db.id.update({ "_id" : id}, { "$push": { "tags": [tag: strftime("%Y-%m-%d %H:%M:%S", gmtime())]}})
+                mongo.db.id.update({ "_id" : id}, { "$push": { "tags": {tag: strftime("%Y-%m-%d %H:%M:%S", gmtime())]}}})
         else:
             id = pingWorker(user_doc)
 
             for tag in tags:
-                mongo.db.id.update({ "_id" : id}, { "$push": { "tags": [tag: strftime("%Y-%m-%d %H:%M:%S", gmtime())]}})
+                mongo.db.id.update({ "_id" : id}, { "$push": { "tags": {tag: strftime("%Y-%m-%d %H:%M:%S", gmtime())]}}})
 
     elif request.method == "POST":
         return("Not Authenticated.")

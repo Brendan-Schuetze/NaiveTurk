@@ -146,7 +146,7 @@ def checkUserStatus(user, tags = "NA"):
             id = pingWorker(user_doc)
             if len(tags) > 0:
                 for tag in tags:
-                    tag_search = mongo.db.id.find({ "_id" : id}, { "tags": {"$elemMatch": {"tag_name": tag}}})
+                    tag_search = mongo.db.id.find({ "_id" : id, "tags.tag_name": tag})
 
                     if(tag_search is not None):
                         return("True")

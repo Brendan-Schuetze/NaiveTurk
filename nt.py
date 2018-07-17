@@ -73,7 +73,7 @@ app.url_map.converters['list'] = ListConverter
 # Authentication Function
 def authenticateRequester(public_key, private_key_test):
     requester = mongo.db.keys.find_one({"public_key": public_key})
-    if requester is not None:
+    if requester is not None and requester["verified"] is not None:
         if requester["verified"] != "True":
             return(False)
         else:

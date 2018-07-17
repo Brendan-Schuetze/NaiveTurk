@@ -54,7 +54,8 @@ def findWorker(user):
 # Ping Worker
 def pingWorker(user_doc):
     id = user_doc["_id"]
-    mongo.db.id.update({ "_id" : id}, { "$push": { "pings": strftime("%Y-%m-%d %H:%M:%S", gmtime()) }})
+    mongo.db.id.update({ "_id" : id},
+        { "$push": { "pings": strftime("%Y-%m-%d %H:%M:%S", gmtime()) }})
     return(id)
 
 # Update Worker Tags
@@ -88,7 +89,9 @@ def authenticateRequester(public_key, private_key_test):
 # Create Keyset for Accessing Authenticated Information
 @app.route("/create/", methods = ['POST'])
 def createUser():
-    if createKeySet(request.form['username'], request.form['password'], request.form['first_name'], request.form['last_name'], request.form['email_address']) == "Success.":
+    if createKeySet(request.form['username'], request.form['password'],
+        request.form['first_name'], request.form['last_name'],
+        request.form['email_address']) == "Success.":
         return login()
     else:
         return("Failed to create account.")
@@ -105,6 +108,7 @@ def accountDetails():
 @app.route("/login/")
 def login():
     if not session.get('logged_in'):
+        session['referrer'] = request.referrer
         return render_template('login.html')
     else:
         return nt()
@@ -116,7 +120,7 @@ def authenticate():
         session['logged_in'] = True
     else:
         return("Not Authenticated.")
-    return nt()
+    return redirect(session["referrer"])
 
 # Dump All Information Regarding User (Admin Functionality)
 @app.route("/dump/<user>/", methods = ['GET', 'POST'])

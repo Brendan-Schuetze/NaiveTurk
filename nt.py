@@ -136,7 +136,7 @@ def dumpUser(user):
 # Method for Checking if User is in Database
 @app.route("/check/<user>/", methods = ['GET'])
 @app.route("/check/<user>/<list:tags>/", methods = ['GET', 'POST'])
-def checkUserStatus(user, tags = "NA"):
+def checkUserStatus(user, tags = None):
     if (request.method == "GET" and session.get('logged_in')) or (request.method == "POST" and authenticateRequester(request.form["username"], request.form["password"])):
         user_doc = findWorker(user)
 
@@ -144,17 +144,18 @@ def checkUserStatus(user, tags = "NA"):
             return("False")
         else:
             id = pingWorker(user_doc)
-            if len(tags) > 0:
+            if tags is not None:
                 for tag in tags:
-                    tag_search = mongo.db.id.find({ worker: findWorker(user), "tags.tag_name": tag})
+                    tag_search = mongo.db.id.find({ "$and": [{"worker": digest(user)}, {"tags.tag_name": tag}]})
 
-                    if(tag_search is not None):
+                    if(tag_search.count() > 0):
                         return("True")
                     else:
                         tag_search = None
 
                 return("False")
-            return("True")
+            else:
+                return("True")
     elif request.method == "POST":
         return("Not Authenticated.")
     elif request.method == "GET":
@@ -192,5 +193,5 @@ def updateUserStatus(user, tags):
 def nt():
     return "Welcome to nvt.science"
 
-#if __name__ == "__main__":
-#    app.run(host ='0.0.0.0', debug = True)
+if __name__ == "__main__":
+    app.run(host ='0.0.0.0', debug = True)

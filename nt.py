@@ -124,7 +124,7 @@ def authenticate():
         session['logged_in'] = True
     else:
         return("Not Authenticated.")
-    redirect(redirect_url())
+    return redirect(redirect_url())
     
 # Dump All Information Regarding User (Admin Functionality)
 @app.route("/dump/<user>/", methods = ['GET', 'POST'])

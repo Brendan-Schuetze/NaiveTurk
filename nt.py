@@ -13,6 +13,16 @@ from flask_bcrypt import Bcrypt
 import os
 import hashlib
 
+# Other Utility Functions
+import re
+import requests
+
+# Import Naive Turk Utility Functions
+import nt_utils as nt
+
+# Google Captcha Information
+from captcha import *
+
 # Start Flask App
 app = Flask(__name__)
 app.config["MONGO_URI"] = "mongodb://localhost:27017/turk"
@@ -21,51 +31,6 @@ app.secret_key = os.urandom(24)
 # Access Database and Encryption Functions
 mongo = PyMongo(app)
 bcrypt = Bcrypt(app)
-
-# Password Hashing Function
-def hashKey(key):
-    hash = bcrypt.generate_password_hash(key)
-    return(hash)
-
-# Helper Function for Generating Hashes and Inserting into DB
-def createKeySet(public_key, private_key, first_name, last_name, email_address):
-    hash = hashKey(private_key)
-
-    existing = mongo.db.keys.find_one({"public_key": public_key})
-    existing_email = mongo.db.keys.find_one({"email_address": email_address})
-    if existing is not None or existing_email is not None:
-        return("Username or email is already taken.")
-    else:
-        mongo.db.keys.insert({"public_key": public_key, "hash": hash,
-            "registered_on": strftime("%Y-%m-%d %H:%M:%S",
-            gmtime()), "verified": "False",
-            "first_name": first_name, "last_name": last_name,
-            "email_address": email_address})
-        return("Success.")
-
-def digest(user):
-    user = hashlib.sha256(user + "nvt.science").hexdigest()
-    return(user)
-
-# Find Worker
-def findWorker(user):
-    return(mongo.db.id.find_one({"worker": digest(user)}))
-
-# Ping Worker
-def pingWorker(user_doc):
-    id = user_doc["_id"]
-    mongo.db.id.update({ "_id" : id},
-        { "$push": { "pings": strftime("%Y-%m-%d %H:%M:%S", gmtime()) }})
-    return(id)
-
-# Update Worker Tags
-def pingTag(id, tag):
-    return(True)
-
-def redirect_url(default='index'):
-    return request.args.get('next') or \
-           request.referrer or \
-           url_for(default)
 
 # List Converter for Converting Tags to a List
 class ListConverter(BaseConverter):
@@ -79,23 +44,14 @@ class ListConverter(BaseConverter):
 
 app.url_map.converters['list'] = ListConverter
 
-# Authentication Function
-def authenticateRequester(public_key, private_key_test):
-    requester = mongo.db.keys.find_one({"public_key": public_key})
-    if requester is not None:
-        if requester["verified"] != "True":
-            return(False)
-        else:
-            private_key_real = requester["hash"]
-            return(bcrypt.check_password_hash(private_key_real, private_key_test))
-    return(False)
-
 
 # Create Keyset for Accessing Authenticated Information
 @app.route("/create/", methods = ['POST'])
 def createUser():
-    if createKeySet(request.form['username'], request.form['password'],
-        request.form['first_name'], request.form['last_name'],
+    if nt.createKeySet(request.form['username'].toUpper(),
+        request.form['password'],
+        request.form['first_name'],
+        request.form['last_name'],
         request.form['email_address']) == "Success.":
         return login()
     else:
@@ -109,6 +65,13 @@ def accountDetails():
     else:
         return nt()
 
+@app.route("/settings/", methods = ['GET'])
+def settings():
+    if not session.get('logged_in'):
+        return login()
+    else:
+        return(session.get('username'))
+
 # Login Page
 @app.route("/login/")
 def login():
@@ -120,17 +83,32 @@ def login():
 # Method for Authenticating Username + Password Combo
 @app.route("/authenticate/", methods = ['POST'])
 def authenticate():
-    if authenticateRequester(request.form['username'], request.form['password']):
+    remoteIP = request.environ['REMOTE_ADDR']
+    response = request.form['g-recaptcha-response']
+
+    params = {
+        "secret": secret,
+        "response": response,
+        "remoteip": remoteIP
+    }
+
+    captchaCheck = requests.get(url = url, params = params)
+    captchaCheck = captchaCheck.json()
+    captchaResult = captchaCheck['success']
+
+
+    if nt.authenticateRequester(request.form['username'].toUpper(), request.form['password']) and captchaResult == "true":
         session['logged_in'] = True
+        session['username'] = request.form['username'].toUpper()
     else:
         return("Not Authenticated.")
     redirect(redirect_url())
-    
+
 # Dump All Information Regarding User (Admin Functionality)
 @app.route("/dump/<user>/", methods = ['GET', 'POST'])
-def dumpUser(user):
-    if (request.method == "GET" and session.get('logged_in')) or (request.method == "POST" and authenticateRequester(request.form["username"], request.form["password"])):
-        user_doc = findWorker(user)
+def dumpUser(cleanInput(user)):
+    if (request.method == "GET" and session.get('logged_in')) or (request.method == "POST" and nt.authenticateRequester(request.form["username"], request.form["password"])):
+        user_doc = nt.findWorker(nt.cleanInput(user))
 
         if user_doc is None:
             return("User Not Found.")
@@ -144,17 +122,17 @@ def dumpUser(user):
 # Method for Checking if User is in Database
 @app.route("/check/<user>/", methods = ['GET'])
 @app.route("/check/<user>/<list:tags>/", methods = ['GET', 'POST'])
-def checkUserStatus(user, tags = None):
-    if (request.method == "GET" and session.get('logged_in')) or (request.method == "POST" and authenticateRequester(request.form["username"], request.form["password"])):
-        user_doc = findWorker(user)
+def checkUserStatus(cleanInput(user), tags = None):
+    if (request.method == "GET" and session.get('logged_in')) or (request.method == "POST" and nt.authenticateRequester(request.form["username"], request.form["password"])):
+        user_doc = nt.findWorker(nt.cleanInput(user))
 
         if user_doc is None:
             return("False")
         else:
-            id = pingWorker(user_doc)
+            id = nt.pingWorker(user_doc)
             if tags is not None:
                 for tag in tags:
-                    tag_search = mongo.db.id.find({ "$and": [{"worker": digest(user)}, {"tags.tag_name": tag}]})
+                    tag_search = mongo.db.id.find({ "$and": [{"worker": nt.quickHash(user)}, {"tags.tag_name": tag}]})
 
                     if(tag_search.count() > 0):
                         return("True")
@@ -172,24 +150,42 @@ def checkUserStatus(user, tags = None):
 
 # Method for Updating Tags Associated with User
 @app.route("/add/<user>/<list:tags>/", methods = ['GET', 'POST'])
-def updateUserStatus(user, tags):
+def updateUserStatus(nt.cleanInput(user), tags):
     if (request.method == "GET" and session.get('logged_in')) or (request.method == "POST" and authenticateRequester(request.form["username"], request.form["password"])):
-        user_doc = findWorker(user)
+        user_doc = nt.findWorker(nt.cleanInput(user))
         if user_doc is None:
-            mongo.db.id.insert({"worker": digest(user),
+            mongo.db.id.insert({"worker": quickHash(user),
                 "time": strftime("%Y-%m-%d %H:%M:%S", gmtime()),
                 "pings": [],
-                "tags": []})
+                "tags": [],
+                "private_tags": []
+                })
 
-            id = pingWorker(findWorker(user))
+            id = nt.pingWorker(nt.findWorker(user))
 
-            for tag in tags:
-                mongo.db.id.update({ "_id" : id}, { "$push": { "tags": {"tag_name": tag, "tag_time": strftime("%Y-%m-%d %H:%M:%S", gmtime())}}})
         else:
-            id = pingWorker(user_doc)
+            id = nt.pingWorker(user_doc)
 
+        #Private Tags Functions
+        if "private" in tags:
             for tag in tags:
-                mongo.db.id.update({ "_id" : id}, { "$push": { "tags": {"tag_name": tag, "tag_time": strftime("%Y-%m-%d %H:%M:%S", gmtime())}}})
+                mongo.db.id.update({ "_id" : id},
+                { "$push": {
+                        "private_tags": {
+                        "tag_name": nt.quickHash(tag + session.get(['username'])),
+                        "tag_time": strftime("%Y-%m-%d %H:%M:%S", gmtime())
+                        }}
+                })
+        else:
+            for tag in tags:
+                mongo.db.id.update({ "_id" : id},
+                { "$push":{
+                    "tags": {
+                    "tag_name": tag,
+                    "tag_time": strftime("%Y-%m-%d %H:%M:%S", gmtime())
+                    }}
+                })
+
         return("Success.")
     elif request.method == "POST":
         return("Not Authenticated.")

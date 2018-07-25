@@ -2,11 +2,12 @@
 {% if session['logged_in'] %}
 <p>You're logged in already!</p>
 {% else %}
+<script src='https://www.google.com/recaptcha/api.js'></script>
 <form action="/authenticate/" method="POST">
   <input type="username" name="username" placeholder="Username">
   <input type="password" name="password" placeholder="Password">
+  <div class="g-recaptcha" data-sitekey="6LeZNmYUAAAAAD7R-1p9ZCI6g9nyUMiY7oL35WZR"></div>
   <input type="submit" value="Log in">
 </form>
 {% endif %}
 {% endblock %}
-

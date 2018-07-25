@@ -1,7 +1,14 @@
+execfile("nt_libs.py")
+
+# Test
+def testImport():
+    return("success")
+
 # Clean input
 def cleanInput(input):
-    input = input.toUpper()
+    input = input.upper()
     input = re.sub("{|}", "", input).replace('"',"")
+    return(input)
 
 # Password Hashing Function
 def slowHash(key):

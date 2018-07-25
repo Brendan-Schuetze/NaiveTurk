@@ -1,54 +1,9 @@
-# Import Libraries
-from flask import Flask
-from flask import session, redirect, render_template, request, abort
-from flask_pymongo import PyMongo
-from time import gmtime, strftime
-from werkzeug.routing import BaseConverter
-
-# Password Hashign Libraries
-from bson import Binary, Code
-from bson.json_util import dumps
-from base64 import b64encode
-from flask_bcrypt import Bcrypt
-import os
-import hashlib
-
-# Other Utility Functions
-import re
-import requests
-
-# Import Naive Turk Utility Functions
-import nt_utils as nt
-
-# Google Captcha Information
-from captcha import *
-
-# Start Flask App
-app = Flask(__name__)
-app.config["MONGO_URI"] = "mongodb://localhost:27017/turk"
-app.secret_key = os.urandom(24)
-
-# Access Database and Encryption Functions
-mongo = PyMongo(app)
-bcrypt = Bcrypt(app)
-
-# List Converter for Converting Tags to a List
-class ListConverter(BaseConverter):
-
-    def to_python(self, value):
-        return value.split('+')
-
-    def to_url(self, values):
-        return '+'.join(BaseConverter.to_url(value)
-                        for value in values)
-
-app.url_map.converters['list'] = ListConverter
-
+execfile("nt_libs.py")
 
 # Create Keyset for Accessing Authenticated Information
 @app.route("/create/", methods = ['POST'])
 def createUser():
-    if nt.createKeySet(request.form['username'].toUpper(),
+    if nt.createKeySet(request.form['username'].upper(),
         request.form['password'],
         request.form['first_name'],
         request.form['last_name'],
@@ -96,18 +51,19 @@ def authenticate():
     captchaCheck = captchaCheck.json()
     captchaResult = captchaCheck['success']
 
-
-    if nt.authenticateRequester(request.form['username'].toUpper(), request.form['password']) and captchaResult == "true":
+    if ((nt.authenticateRequester(request.form['username'].upper(), request.form['password'])) and captchaResult == "True"):
         session['logged_in'] = True
-        session['username'] = request.form['username'].toUpper()
+        session['username'] = request.form['username'].upper()
     else:
         return("Not Authenticated.")
     return redirect(redirect_url())
     
 # Dump All Information Regarding User (Admin Functionality)
 @app.route("/dump/<user>/", methods = ['GET', 'POST'])
-def dumpUser(cleanInput(user)):
-    if (request.method == "GET" and session.get('logged_in')) or (request.method == "POST" and nt.authenticateRequester(request.form["username"], request.form["password"])):
+def dumpUser(user):
+    user = nt.cleanInput(user)
+
+    if (request.method == "GET" and session.get('logged_in')) or (request.method == "POST" and nt.authenticateRequester(request.form["username"].upper(), request.form["password"])):
         user_doc = nt.findWorker(nt.cleanInput(user))
 
         if user_doc is None:
@@ -122,7 +78,9 @@ def dumpUser(cleanInput(user)):
 # Method for Checking if User is in Database
 @app.route("/check/<user>/", methods = ['GET'])
 @app.route("/check/<user>/<list:tags>/", methods = ['GET', 'POST'])
-def checkUserStatus(cleanInput(user), tags = None):
+def checkUserStatus(user, tags = None):
+    user = nt.cleanInput(user)
+
     if (request.method == "GET" and session.get('logged_in')) or (request.method == "POST" and nt.authenticateRequester(request.form["username"], request.form["password"])):
         user_doc = nt.findWorker(nt.cleanInput(user))
 
@@ -150,7 +108,9 @@ def checkUserStatus(cleanInput(user), tags = None):
 
 # Method for Updating Tags Associated with User
 @app.route("/add/<user>/<list:tags>/", methods = ['GET', 'POST'])
-def updateUserStatus(nt.cleanInput(user), tags):
+def updateUserStatus(user, tags):
+    user = nt.cleanInput(user)
+
     if (request.method == "GET" and session.get('logged_in')) or (request.method == "POST" and authenticateRequester(request.form["username"], request.form["password"])):
         user_doc = nt.findWorker(nt.cleanInput(user))
         if user_doc is None:
@@ -194,8 +154,9 @@ def updateUserStatus(nt.cleanInput(user), tags):
 
 # Homepage
 @app.route("/")
-def nt():
+def home():
     return "Welcome to nvt.science"
+    #return(nt.testImport())
 
 if __name__ == "__main__":
     app.run(host ='0.0.0.0', debug = True)

@@ -26,7 +26,6 @@ from captcha import *
 # Start Flask App
 app = Flask(__name__)
 app.config["MONGO_URI"] = "mongodb://localhost:27017/turk"
-app.secret_key = os.urandom(24)
 
 # Access Database and Encryption Functions
 mongo = PyMongo(app)

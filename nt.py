@@ -83,7 +83,7 @@ def dumpUser(user):
 def checkUserStatus(user, tags = None):
     user = nt.cleanInput(user)
 
-    if (request.method == "GET" and session.get('logged_in')) or (request.method == "POST" and nt.authenticateRequester(request.form["username"], request.form["password"])):
+    if (request.method == "GET" and session.get('logged_in')) or (request.method == "POST" and nt.authenticateRequester(request.form["username"].upper(), request.form["password"])):
         user_doc = nt.findWorker(nt.cleanInput(user))
 
         if user_doc is None:
@@ -113,10 +113,10 @@ def checkUserStatus(user, tags = None):
 def updateUserStatus(user, tags):
     user = nt.cleanInput(user)
 
-    if (request.method == "GET" and session.get('logged_in')) or (request.method == "POST" and authenticateRequester(request.form["username"], request.form["password"])):
+    if (request.method == "GET" and session.get('logged_in')) or (request.method == "POST" and nt.authenticateRequester(request.form["username"].upper(), request.form["password"])):
         user_doc = nt.findWorker(nt.cleanInput(user))
         if user_doc is None:
-            mongo.db.id.insert({"worker": quickHash(user),
+            mongo.db.id.insert({"worker": nt.quickHash(user),
                 "time": strftime("%Y-%m-%d %H:%M:%S", gmtime()),
                 "pings": [],
                 "tags": [],

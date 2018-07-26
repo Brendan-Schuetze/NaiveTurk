@@ -18,7 +18,7 @@ def accountDetails():
     if not session.get('logged_in'):
         return render_template('account.html')
     else:
-        return nt()
+        return home()
 
 @app.route("/settings/", methods = ['GET'])
 def settings():
@@ -33,7 +33,7 @@ def login():
     if not session.get('logged_in'):
         return render_template('login.html')
     else:
-        return nt()
+        return home()
 
 # Method for Authenticating Username + Password Combo
 @app.route("/authenticate/", methods = ['POST'])
@@ -51,12 +51,14 @@ def authenticate():
     captchaCheck = captchaCheck.json()
     captchaResult = captchaCheck['success']
 
-    if ((nt.authenticateRequester(request.form['username'].upper(), request.form['password'])) and captchaResult == "True"):
+    if ((nt.authenticateRequester(request.form['username'].upper(), request.form['password'])) and captchaResult == True):
         session['logged_in'] = True
         session['username'] = request.form['username'].upper()
+    elif captchaResult != True:
+        return("Captcha failed.")
     else:
-        return("Not Authenticated.")
-    return redirect(redirect_url())
+        return("Login could not be authenticated.")
+    return redirect(nt.redirect_url())
     
 # Dump All Information Regarding User (Admin Functionality)
 @app.route("/dump/<user>/", methods = ['GET', 'POST'])
@@ -76,7 +78,7 @@ def dumpUser(user):
         return login()
 
 # Method for Checking if User is in Database
-@app.route("/check/<user>/", methods = ['GET'])
+@app.route("/check/<user>/", methods = ['GET', 'POST'])
 @app.route("/check/<user>/<list:tags>/", methods = ['GET', 'POST'])
 def checkUserStatus(user, tags = None):
     user = nt.cleanInput(user)

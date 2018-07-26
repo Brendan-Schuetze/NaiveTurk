@@ -38,7 +38,7 @@ def createKeySet(public_key, private_key, first_name, last_name, email_address):
 
 # Find Worker
 def findWorker(user):
-    return(mongo.db.id.find_one({"worker": digest(user)}))
+    return(mongo.db.id.find_one({"worker": quickHash(user)}))
 
 # Ping Worker
 def pingWorker(user_doc):

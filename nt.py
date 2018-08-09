@@ -13,19 +13,19 @@ def createUser():
         return("Failed to create account.")
 
 # Account Creation Page
-@app.route("/account/", methods = ['GET'])
+@app.route("/create_account/", methods = ['GET'])
 def accountDetails():
     if not session.get('logged_in'):
-        return render_template('account.html')
+        return render_template('create_account.html')
     else:
         return home()
 
-@app.route("/settings/", methods = ['GET'])
+@app.route("/account/", methods = ['GET'])
 def settings():
     if not session.get('logged_in'):
         return login()
     else:
-        return(session.get('username'))
+        return(session.get('username') + session.get['privileges'])
 
 # Login Page
 @app.route("/login/")
@@ -54,6 +54,8 @@ def authenticate():
     if ((nt.authenticateRequester(request.form['username'].upper(), request.form['password'])) and captchaResult == True):
         session['logged_in'] = True
         session['username'] = request.form['username'].upper()
+        user = mongo.db.keys.find({"public_key": session['username']})
+        session['privileges'] = user["privileges"]
     elif captchaResult != True:
         return("Captcha failed.")
     else:

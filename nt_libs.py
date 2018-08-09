@@ -4,6 +4,7 @@ from flask import session, redirect, render_template, request, abort
 from flask_pymongo import PyMongo
 from time import gmtime, strftime
 from werkzeug.routing import BaseConverter
+from werkzeug.utils import secure_filename
 
 # Password Hashign Libraries
 from bson import Binary, Code
@@ -27,7 +28,8 @@ execfile("captcha.py")
 app = Flask(__name__)
 app.config["MONGO_URI"] = "mongodb://localhost:27017/turk"
 app.secret_key = getAppSecretKey()
- 
+app.config['UPLOAD_FOLDER'] = upload_folder
+
 # Access Database and Encryption Functions
 mongo = PyMongo(app)
 bcrypt = Bcrypt(app)

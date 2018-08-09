@@ -4,6 +4,10 @@ execfile("nt_libs.py")
 def testImport():
     return("success")
 
+def checkExtension(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in allowed_extensions
+
 # Clean input
 def cleanInput(input):
     input = input.upper()

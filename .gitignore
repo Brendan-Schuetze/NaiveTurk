@@ -2,3 +2,4 @@
 captcha.py
 *.pyc
 captcha.py
+*.csv

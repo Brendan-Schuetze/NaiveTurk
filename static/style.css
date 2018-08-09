@@ -3,6 +3,10 @@
     padding-bottom: 20px;
 }
 
+#main {
+  width: 50%;
+}
+
 h1 {
   font-size: 60px;
   font-family: 'Bree Serif', serif;
@@ -25,7 +29,7 @@ li {
 }
 
 @media screen and (max-width: 600px) {
-    .column {
+    .main {
         width: 100%;
     }
 }

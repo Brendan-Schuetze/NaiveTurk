@@ -21,12 +21,13 @@ import requests
 import nt_utils as nt
 
 # Google Captcha Information
-from captcha import *
+execfile("captcha.py")
 
 # Start Flask App
 app = Flask(__name__)
 app.config["MONGO_URI"] = "mongodb://localhost:27017/turk"
-
+app.secret_key = getAppSecretKey()
+ 
 # Access Database and Encryption Functions
 mongo = PyMongo(app)
 bcrypt = Bcrypt(app)

@@ -2,7 +2,12 @@
 {% if session['logged_in'] %}
 <p>You're logged in already!</p>
 {% else %}
+<head>
+<link rel="stylesheet" type="text/css" href="/static/style.css">
 <script src='https://www.google.com/recaptcha/api.js'></script>
+</head>
+<body>
+<h1>nvt.science</h1>
 <form action="/authenticate/" method="POST">
   <input type="username" name="username" placeholder="Username">
   <input type="password" name="password" placeholder="Password">
@@ -10,5 +15,6 @@
   <div class="g-recaptcha" data-sitekey="6LeZNmYUAAAAAD7R-1p9ZCI6g9nyUMiY7oL35WZR"></div>
   <input type="submit" value="Log in">
 </form>
+</body>
 {% endif %}
 {% endblock %}

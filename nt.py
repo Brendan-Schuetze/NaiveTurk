@@ -195,15 +195,12 @@ def addFile():
 
 @app.route('/uploads/<filename>')
 def uploaded_file(filename):
-    return("Upload Succcessful") 
-          
-
+    return("Upload Succcessful.")
 
 # Homepage
 @app.route("/")
 def home():
-    return "Welcome to nvt.science"
-    #return(nt.testImport())
+    return app.send_static_file('index.html')
 
 if __name__ == "__main__":
     app.run(host ='0.0.0.0', debug = True)

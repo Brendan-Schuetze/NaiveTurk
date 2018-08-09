@@ -2,3 +2,21 @@
     padding-top: 20px;
     padding-bottom: 20px;
 }
+
+.column {
+    float: left;
+}
+
+.left, .right {
+    width: 25%;
+}
+
+.middle {
+    width: 50%;
+}
+
+@media screen and (max-width: 600px) {
+    .column {
+        width: 100%;
+    }
+}

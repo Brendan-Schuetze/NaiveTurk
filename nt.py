@@ -25,7 +25,7 @@ def settings():
     if not session.get('logged_in'):
         return login()
     else:
-        return(session.get('username') + session.get['privileges'])
+        return(session.get('username') + session.get('privileges'))
 
 # Login Page
 @app.route("/login/")
@@ -34,6 +34,12 @@ def login():
         return render_template('login.html')
     else:
         return home()
+
+# Method for Updating Privileges
+@app.route("/admin/")
+def admin():
+    return("tbd")
+
 
 # Method for Authenticating Username + Password Combo
 @app.route("/authenticate/", methods = ['POST'])

@@ -11,22 +11,29 @@
     <p><b>Short Answer:</b> We are a group of scientists working towards increasing
       the quality of data gathered by ourselves and other researchers recruiting from online samples.</p>
 
-    <p><b>Long Answer:</b> nvt.science is a database for researchers in the social sciences who run
+    <p><b>Long Answer:</b> nvt.science is a metadata repository for researchers in the social sciences who run
       experiments online. This service helps researchers do two things:
       <ul>
-        <li>Track bots
-        <li>Determine who has or has not participated in similar experiments before
+        <li>Avoid recruiting bots to surveys
+        <li>Avoid highly active (i.e., non-naive) workers
       </ul>
-      <p>The MTurk research pools and other online services are
+      <p>Although the need for such a service has been extant for
+        <a href="https://www.wired.com/story/the-crazy-hacks-one-woman-used-to-make-money-on-mechanical-turk/">quite some time</a>,
+        recent events involving large numbers of bots on Mechanical Turk have heightened the need for increased participant screening.
+        The MTurk research pools and other online services are
         <a href="http://www.ucl.ac.uk/lagnado-lab/publications/harris/StewartEtAl_JDM_MTurk.pdf">not as large</a> or
         diverse as we might think. And the issues related to survey spam are clear.
         Both the issues of bots and unknown levels of participant naivete have
         <a href="https://rdcu.be/4hxY">documented</a> impacts on the quality of scientific research.
 
- <h3>How does it work?</h3><p>In nerd parlance, nvt.science operates through the use of a <a href="https://en.wikipedia.org/wiki/Representational_state_transfer">REST API</a>. Essentially, when your survey is loaded you will ping our website with that participant's Mechanical Turk id (or similar ID from another service), and we will return information on the likelihood that that user is a bot (or associated with other arbitrary tags). Similarly, at the end of a survey, we would appreciate it if you ping our survey again to tell us if someone completed your survey successfully.</p>
+ <h3>How does it work?</h3><p>In nerd parlance, nvt.science operates through the use of a <a href="https://en.wikipedia.org/wiki/Representational_state_transfer">REST API</a>.
+   Essentially, when your survey is loaded, a participant must first consent to their ID being sent to nvt.science.
+   Upon the reception of informed consent, you will ping our website with that participant's Mechanical Turk id (or similar ID from another service),
+   and we will return information on the likelihood that that user is a bot and/or highly active.
+   imilarly, at the end of a survey, we would appreciate it if you ping our survey again to tell us if someone completed your survey successfully.</p>
 
-<p> We will also be offering a .csv file upload service, where you can tag users as bots or as survey completers
-during the datata analysis phase.</p>
+<p>We will also be offering a .csv file upload service, where you can tag users as bots or as survey completers
+during the data analysis phase.</p>
 
   <h3>Who runs this website?</h3><p><a href="https://twitter.com/b_schuetze">Brendan Schuetze</a>, a graduate researcher at UT Austin.</p>
 

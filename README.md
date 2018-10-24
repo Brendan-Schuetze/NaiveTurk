@@ -25,3 +25,5 @@ The bot tracker works as an API that would have been called at the beginning of 
 * https://rkennedy.shinyapps.io/IPlookup/
 * Simply raising your worker requirements (e.g., Number of HITs completed and successful completion rate)
 * Paying workers more in order to allow for thoughtful completion of tasks.
+
+And always remember to avoid the [data industrial complex](https://techcrunch.com/2018/10/24/apples-tim-cook-makes-blistering-attack-on-the-data-industrial-complex/).

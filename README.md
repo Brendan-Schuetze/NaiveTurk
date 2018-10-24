@@ -1,5 +1,7 @@
 # NaiveTurk
 
+An early attempt at tracking bots on Mechanical Turk. No longer under development (see Status section).
+
 ## History
 
 This git repository represents the resting place of an early prototype of a Mechanical Turk bot tracker that I had developed. The initial impetus for this project was to determine how naive Mechanical Turk workers were or were not. One possible issue regarding Mechanical Turk use for psychology researchers is that many reesarchers may be using the same basic paradigm. Some paradigms are potentially aimed at naive participants with little knowledge of what variables are being manipulated. Unfortunately, there is no built-in ability to track which workers have potentially completed a related task. This app would have functioned as a database to keep track of the activity status of active workers. It would have served as the worker equivalent to TurkOpticon. 
